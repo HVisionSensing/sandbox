@@ -1,0 +1,25 @@
+<!--
+@see knockout demo&tips
+-->
+
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+	<meta charset="utf-8">
+	<title>hello world</title>
+  </head>
+  <body>
+	<div>クリック回数 <span data-bind='text: numberOfClicks'>&nbsp;</span> 回</div>
+	<button data-bind='click: registerClick, disable: hasClickedTooManyTimes'>クリックしてね</button>
+  
+	<div data-bind='visible: hasClickedTooManyTimes'>
+      クリックしすぎです！指がすり減らないうちにやめて下さい ヽ(^o^;)丿
+      <button data-bind='click: resetClicks'>リセット</button>
+	</div>
+
+	<script type='text/javascript' src='./knockout-2.2.1.js'></script>
+	<script type='text/javascript' src='./click_counter_view_model.js'></script>
+  </body>
+</html>
+
+
