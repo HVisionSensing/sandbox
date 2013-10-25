@@ -1,5 +1,5 @@
 ;;;
-;;; @see Land of Lisp, section 5
+;;; @see Land of Lisp, chapter 05
 ;;;
 
 ;;; ゲームの世界の場所の描写をalistで記述
