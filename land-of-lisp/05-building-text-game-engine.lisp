@@ -1,9 +1,9 @@
 ;;;
-;;; @see also Land of Lisp
+;;; @see Land of Lisp, section 5
 ;;;
 
-;;; ゲーム中の場所の描写をalistで記述
-;;; 描写はあえて文字列ではなく、Lispで最も操作しやすいシンボルとリストで持つ
+;;; ゲームの世界の場所の描写をalistで記述
+;;;  描写はあえて文字列ではなく、Lispで最も操作しやすいシンボルとリストで持つ
 (defparameter *nodes*
   '((living-room
 	 (you are in the living-room.
@@ -18,7 +18,8 @@
 
 
 ;;; assoc はリスト中からキーを元に要素を取り出す
-(assoc 'garden *nodes*) ;; ==> (garden (you are ...))
+;;; ex. (assoc 'garden *nodes*) ;; ==> (garden (you are ...))
+
 
 ;;; assocを利用してdescribe-locationを実装する
 ;;; 
@@ -50,8 +51,8 @@
 ;;;
 ;;; #' はfunctionオペレータの略記。
 ;;; Common Lispでは関数を値として扱う場合、上記を使ってそれを明記しなければならない。
-;;; (関数と変数で名前が衝突すると思わぬエラーを引き起こすため)
-;;; Schemeではいちいちfunctionオペレータを付ける必要はない
+;;; (関数と変数で名前が衝突すると思わぬエラーを引き起こすため
+;;;  Schemeではいちいちfunctionオペレータを付ける必要はない)
 ;;;
 ;;; appendは結合したいリストを別々の引数で渡す必要があるため、
 ;;; そのまま使っても上手く機能しない。
@@ -71,17 +72,62 @@
 	(chain garden)
 	(frog garden)))
 
-;;; 与えられた場所から見えるオブジェクトのリストを返す
-;;; remove-if-not は関数が真を返すような要素だけを選び出すフィルタのようなもの
+;;; 指定された場所 loc から見えるオブジェクトのリストを返す
+;;;  - remove-if-not は関数が真を返すような要素だけを選び出し
+;;;    リストとして返すフィルタのようなもの
+;;;    ex. (remove-if-not #'oddp '(1 2 3 4 5)) ==> (1 3 5)
+;;;
+;;;  - at-loc-p はobjがlocに存在するかを判定するローカル関数
+
 (defun objects-at (loc objs obj-locs)
   (labels ((at-loc-p (obj)
-			 (eq (cadr (assoc obj obj-locs)) loc)))
+			 (eq loc (cadr (assoc obj obj-locs)))))
 	(remove-if-not #'at-loc-p objs)))
 
 ;;; 見えるオブジェクトを描写する
+;;;  describe-obj はローカル関数
 (defun describe-objects (loc objs obj-locs)
   (labels ((describe-obj (obj)
 			`(you see a ,obj on the floor.)))
 	(apply #'append (mapcar #'describe-obj (objects-at loc objs obj-locs)))))
 
-					 
+;;; プレーヤーの現在の場所
+(defparameter *location* 'living-room)
+
+;;; 現在の場所から見えるものを全て描写する
+(defun look ()
+  (append (describe-location *location* *nodes*)
+		  (describe-paths *location* *edges*)
+		  (describe-objects *location* *objects* *object-locations*)))
+
+;;; 現在の場所からdirectionの方向へ移動する
+(defun walk (direction)
+  (let ((next (find direction
+					(cdr (assoc *location* *edges*))
+					:key #'cadr)))
+; nextには移動先の場所と方向が含まれるedgeが格納されている
+;	(print next)
+	(if next
+		(progn
+		  (setf *location* (car next))
+		  (look))
+	  '(you cannot go that way.))
+	))
+
+
+;; 現在の場所のオブジェクトを手に取る
+;;  指定されたobjectが存在する場合、bodyというリストにpushする
+(defun pickup (object)
+  (cond ((member object
+				 (objects-at *location* *objects* *object-locations*))
+		 ;; objectと'bodyのペアを*object-locations*に追加する
+		 (push (list object 'body) *object-locations*)
+		 `(you are now carrying the ,object))
+		(t
+		 '(you cannot get that.))
+		))
+
+;; 持っているオブジェクトを調べる
+(defun inventory ()
+  (cons 'itmes- (objects-at 'body *objects* *object-locations*)))
+
